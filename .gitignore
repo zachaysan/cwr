@@ -1,3 +1,4 @@
 *~
 *.gem
 credentials
+Gemfile.lock
