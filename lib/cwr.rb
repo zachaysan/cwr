@@ -1,4 +1,6 @@
 class CWR
+  include HTTParty
+
   attr_accessor :access_token
 
   def webhook
