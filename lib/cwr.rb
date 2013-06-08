@@ -1,8 +1,16 @@
+require 'json'
+require 'httparty'
+
 class CWR
   include HTTParty
+  base_uri 'http://0.0.0.0:3000'
 
-  attr_accessor :access_token, :username, :password
-
+  attr_accessor :access_token, :email, :password
+  alias_method :username, :email
+  def username=(other)
+    @email = other
+  end
+  
   def webhook
     require_access_token
 
@@ -17,16 +25,18 @@ class CWR
   end
 
   def create_new_access_token_if_able
-    return @username and @password and new_access_token
+    @username and @password and new_access_token
   end
 
   def new_access_token
-    body = { username: @username, password: @password }
-    headers = 'Content-Type' => 'application/json'
-
-    self.class.post("access_tokens",
-                    body: body.to_json,
-                    headers: headers)
+    access_token = { email: @email,
+      password: @password }
+    body = { access_token: access_token }
+    headers = { 'Content-Type' => 'application/json' }
+    resp = self.class.post("/access_tokens",
+                           body: body.to_json,
+                           headers: headers)
+    @access_token = resp["access_token"]["id"]
   end
 
   def securely_post(post_body, options)
