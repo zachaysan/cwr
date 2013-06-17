@@ -1,6 +1,18 @@
 require 'json'
 require 'httparty'
 
+class DestroyedProducer
+end
+
+class Producer
+  def destroy
+    return DestroyedProducer.new
+  end
+end
+
+class Consumer
+end
+
 class CWR
   include HTTParty
 
@@ -14,10 +26,20 @@ class CWR
   def username=(other)
     @email = other
   end
-  
+
+  def create_producer(producer_name)
+    return Producer.new
+  end
+
+  def list_producers
+    return [Producer.new]
+  end
+
+  def create_consumer
+  end
+
   def webhook
     require_access_token
-
     self.class.post
   end
 
