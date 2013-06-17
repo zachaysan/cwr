@@ -11,6 +11,15 @@ class Producer
 end
 
 class Consumer
+  def destroy
+    return DestroyedConsumer.new
+  end
+end
+
+class DestroyedProducer
+end
+
+class DestroyedConsumer
 end
 
 class CWR
@@ -27,7 +36,7 @@ class CWR
     @email = other
   end
 
-  def create_producer(producer_name)
+  def create_producer(name)
     return Producer.new
   end
 
@@ -35,7 +44,12 @@ class CWR
     return [Producer.new]
   end
 
-  def create_consumer
+  def create_consumer(name)
+    return Consumer.new
+  end
+
+  def list_consumers
+    return [Consumer.new]
   end
 
   def webhook

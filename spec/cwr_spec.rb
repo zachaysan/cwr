@@ -31,7 +31,7 @@ describe CWR, "Normal usage" do
   
   subject { @cwr }
 
-  describe "when creating a producer" do
+  describe "producers" do
     before(:all) do
       producer_name = "example.com"
       @producer = @cwr.create_producer(producer_name)
@@ -42,7 +42,17 @@ describe CWR, "Normal usage" do
     specify { @cwr.list_producers.first.should be_a Producer }
   end
 
-  it "allows you to create a consumer"
+  describe "consumers" do
+    before(:all) do
+      consumer_name = "sally from accounting"
+      @consumer = @cwr.create_consumer(consumer_name)
+    end
+    subject { @consumer }
+    it { should be_a Consumer }
+    specify { @consumer.destroy.should be_a DestroyedConsumer }
+    specify { @cwr.list_consumers.first.should be_a Consumer }
+  end
+
   it "allows you to create a fucking webhook"
 
 end
