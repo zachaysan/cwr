@@ -3,10 +3,14 @@ require 'httparty'
 
 class CWR
   include HTTParty
-  base_uri 'http://0.0.0.0:3000'
 
   attr_accessor :access_token, :email, :password, :producer
   alias_method :username, :email
+
+  def initialize(captian_webhooks_base_uri='http://0.0.0.0:3000')
+    self.class.base_uri captian_webhooks_base_uri
+  end
+
   def username=(other)
     @email = other
   end
