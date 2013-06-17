@@ -5,14 +5,43 @@ class DestroyedProducer
 end
 
 class Producer
+  def initialize(cwr, name)
+    @cwr = cwr
+    @name = name
+  end
+  
   def destroy
     return DestroyedProducer.new
+  end
+
+  def create_consumer(name)
+    @cwr.create_consumer self, name
+  end
+  
+  def create_webhook_for(consumers, webhook_post_uri, data = nil)
+    @cwr.create_webhook(self, consumers, data)
   end
 end
 
 class Consumer
+  def initialize(cwr, producer, name)
+    @cwr = cwr
+    @producer = producer
+    @name = name
+  end
+
   def destroy
     return DestroyedConsumer.new
+  end
+end
+
+class Webhook
+  def initialize(webhook_id, error=nil)
+    @hooked = !error
+  end
+  
+  def hooked?
+    @hooked
   end
 end
 
@@ -22,6 +51,8 @@ end
 class DestroyedConsumer
 end
 
+
+
 class CWR
   include HTTParty
 
@@ -30,6 +61,9 @@ class CWR
 
   def initialize(captian_webhooks_base_uri='http://0.0.0.0:3000')
     self.class.base_uri captian_webhooks_base_uri
+    @producer_stub = Producer.new(self, "stub")
+    @consumer_stub = Consumer.new(self, @producer_stub, "stub")
+    @webhook_stub = Webhook.new(1)
   end
 
   def username=(other)
@@ -37,24 +71,33 @@ class CWR
   end
 
   def create_producer(name)
-    return Producer.new
+    return Producer.new( self, name )
   end
 
   def list_producers
-    return [Producer.new]
+    return [@producer_stub]
   end
 
-  def create_consumer(name)
-    return Consumer.new
+  def create_consumer(producer, name)
+    return Consumer.new( self, producer, name )
   end
 
   def list_consumers
-    return [Consumer.new]
+    return [@consumer_stub]
   end
 
-  def webhook
-    require_access_token
-    self.class.post
+  def create_webhook(producer, consumers, data=nil)
+    consumers = [consumers] if consumers.is_a? Consumer
+    return @webhook_stub
+  end
+
+  def list_webhooks
+    return []
+  end
+
+  def yeearr
+    :jolly_roger
+    "yeearr"
   end
 
   protected
