@@ -128,7 +128,7 @@ class CWR
 
   def securely_post(url, body)
     require_access_token
-    headers = { 'Authorization' => @access_token }
+    headers = { 'HTTP_AUTHORIZATION' => @access_token }
     headers['Content-Type'] = 'application/json'
     self.class.post(url,
                     body: body.to_json,
