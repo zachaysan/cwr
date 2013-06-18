@@ -37,11 +37,11 @@ end
 
 class Webhook
   def initialize(webhook_id, error=nil)
-    @hooked = !error
+    @error = error
   end
   
   def hooked?
-    @hooked
+    !@error
   end
 end
 
@@ -126,7 +126,12 @@ class CWR
     @access_token = resp["access_token"]["id"]
   end
 
-  def securely_post(post_body, options)
+  def securely_post(url, body)
     require_access_token
+    headers = { 'Authorization' => @access_token }
+    headers['Content-Type'] = 'application/json'
+    self.class.post(url,
+                    body: body.to_json,
+                    headers: headers)
   end
 end
