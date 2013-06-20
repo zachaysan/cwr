@@ -51,8 +51,6 @@ end
 class DestroyedConsumer
 end
 
-
-
 class CWR
   include HTTParty
 
