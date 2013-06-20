@@ -5,7 +5,8 @@ class DestroyedProducer
 end
 
 class Producer
-  def initialize(cwr, name)
+
+  def initialize(cwr, name, producer_path=nil)
     @cwr = cwr
     @name = name
   end
@@ -57,7 +58,9 @@ class CWR
   attr_accessor :access_token, :email, :password, :producer
   alias_method :username, :email
 
-  def initialize(captian_webhooks_base_uri='http://0.0.0.0:3000')
+  def initialize(captian_webhooks_base_uri='http://0.0.0.0:3000',
+                 producer_path=nil)
+    @PRODUCER_PATH = producer_path || "/producers"
     self.class.base_uri captian_webhooks_base_uri
     @producer_stub = Producer.new(self, "stub")
     @consumer_stub = Consumer.new(self, @producer_stub, "stub")
@@ -69,8 +72,11 @@ class CWR
   end
 
   def create_producer(name)
+    body = { "name" => name }
+    resp = securely_post( @PRODUCER_PATH, body )
     return Producer.new( self, name )
   end
+
 
   def list_producers
     return [@producer_stub]
@@ -110,6 +116,7 @@ class CWR
   end
 
   def create_new_access_token_if_able
+    @username ||= @email
     @username and @password and new_access_token
   end
 
@@ -124,12 +131,40 @@ class CWR
     @access_token = resp["access_token"]["id"]
   end
 
-  def securely_post(url, body)
+  def securely_post(path, body, headers=nil)
     require_access_token
-    headers = { 'HTTP_AUTHORIZATION' => @access_token }
+    headers ||= {}
+    headers['HTTP_AUTHORIZATION'] = @access_token
     headers['Content-Type'] = 'application/json'
-    self.class.post(url,
-                    body: body.to_json,
-                    headers: headers)
+    begin
+      resp = self.class.post(path,
+                             body: body.to_json,
+                             headers: headers)
+      check_response resp
+    rescue Exception => e
+      error = e.message + "\n"
+      error += "Problem with secure post to: #{path}\n"
+      error += "path: #{path}\n"
+      error += "body: #{body}"
+      raise error
+    end
+    resp
+  end
+
+  def check_response(resp)
+    case resp.code
+    when 400
+      raise "400 - Bad Request"
+    when 401
+      raise "401 - Unauthorized"
+    when 403
+      raise "403 - Forbidden"
+    when 404
+      raise "404 - Not found"
+    when 400..499
+      raise "Client error with code #{resp.code}"
+    when 500..599
+      raise "Server error with code #{resp.code}"
+    end
   end
 end

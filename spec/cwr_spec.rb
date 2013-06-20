@@ -27,6 +27,7 @@ describe CWR, "Normal usage" do
     @cwr = CWR.new
     @cwr.email = SPEC_EMAIL
     @cwr.password = SPEC_PASSWORD
+    
     producer_name = "example.com"
     @producer = @cwr.create_producer(producer_name)
   end
