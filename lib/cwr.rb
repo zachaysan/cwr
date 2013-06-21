@@ -72,7 +72,7 @@ class CWR
   end
 
   def create_producer(name)
-    body = { "name" => name }
+    body = { "producer" => {"name" => name }}
     resp = securely_post( @PRODUCER_PATH, body )
     return Producer.new( self, name )
   end
@@ -125,6 +125,7 @@ class CWR
       password: @password }
     body = { access_token: access_token }
     headers = { 'Content-Type' => 'application/json' }
+
     resp = self.class.post("/access_tokens",
                            body: body.to_json,
                            headers: headers)
