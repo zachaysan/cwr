@@ -135,7 +135,11 @@ class CWR
   def securely_post(path, body, headers=nil)
     require_access_token
     headers ||= {}
-    headers['HTTP_AUTHORIZATION'] = @access_token
+    # Note that rails converts headers to HTTP_AUTHORIZATION
+    # automatically, so on the server side it will not look
+    # the same as the request, even if we tack on "HTTP_" 
+    # ourselves.
+    headers['AUTHORIZATION'] = @access_token
     headers['Content-Type'] = 'application/json'
     begin
       resp = self.class.post(path,
