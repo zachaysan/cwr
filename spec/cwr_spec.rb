@@ -68,5 +68,11 @@ describe CWR, "Normal usage" do
     subject { @webhook }
     it { should be_a Webhook }
     specify { @webhook.hooked?.should be true }
+
+    after(:all) do
+      @cwr.list_producers.map do |producer|
+        true
+      end
+    end
   end
 end

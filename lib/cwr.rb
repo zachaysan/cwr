@@ -5,14 +5,19 @@ class DestroyedProducer
 end
 
 class Producer
+  attr_reader :path
 
-  def initialize(cwr, name, producer_path=nil)
+  def initialize(cwr,
+                 name,
+                 path=nil)
     @cwr = cwr
     @name = name
+    @path = path
   end
   
   def destroy
-    return DestroyedProducer.new
+    @cwr.delete_producer(self)
+    return DestroyedProducer.new(path)
   end
 
   def create_consumer(name)
@@ -47,6 +52,9 @@ class Webhook
 end
 
 class DestroyedProducer
+  def initialize(former_path)
+    @former_path = former_path
+  end
 end
 
 class DestroyedConsumer
@@ -74,9 +82,16 @@ class CWR
   def create_producer(name)
     body = { "producer" => {"name" => name }}
     resp = securely_post( @PRODUCER_PATH, body )
-    return Producer.new( self, name )
+    
+    location = resp.headers['location']
+    producer_path = location.split(self.class.base_uri)[-1]
+    return Producer.new( self, name, producer_path )
   end
 
+  def delete_producer(producer)
+    resp = securely_delete(producer.path)
+    resp
+  end
 
   def list_producers
     return [@producer_stub]
@@ -132,8 +147,7 @@ class CWR
     @access_token = resp["access_token"]["id"]
   end
 
-  def securely_post(path, body, headers=nil)
-    require_access_token
+  def secure_headers(headers=nil)
     headers ||= {}
     # Note that rails converts headers to HTTP_AUTHORIZATION
     # automatically, so on the server side it will not look
@@ -141,17 +155,39 @@ class CWR
     # ourselves.
     headers['AUTHORIZATION'] = @access_token
     headers['Content-Type'] = 'application/json'
+    return headers
+  end
+
+  def http_exception(e, method, path, body=nil)
+    error = e.message + "\n"
+    error += "Problem with secure #{method} to: #{path}\n"
+    error += "path: #{path}\n"
+    error += "body: #{body}" if body
+    raise error
+  end
+
+  def securely_delete(path, headers=nil)
+    headers = secure_headers(headers)
+    begin
+      resp = self.class.delete(path,
+                               headers: headers)
+      check_response resp
+    rescue Exception => e
+      http_exception(e, :delete, path)
+    end
+    resp
+  end
+
+  def securely_post(path, body, headers=nil)
+    require_access_token
+    headers = secure_headers(headers)
     begin
       resp = self.class.post(path,
                              body: body.to_json,
                              headers: headers)
       check_response resp
     rescue Exception => e
-      error = e.message + "\n"
-      error += "Problem with secure post to: #{path}\n"
-      error += "path: #{path}\n"
-      error += "body: #{body}"
-      raise error
+      http_execption(e, :post, path, body)
     end
     resp
   end
