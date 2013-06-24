@@ -94,7 +94,11 @@ class CWR
   end
 
   def list_producers
-    return [@producer_stub]
+    params = { email: @email }
+    resp = securely_get(@PRODUCER_PATH,
+                        params)
+    producers = resp['producers']
+    return producers
   end
 
   def create_consumer(producer, name)
@@ -158,11 +162,12 @@ class CWR
     return headers
   end
 
-  def http_exception(e, method, path, body=nil)
+  def http_exception(e, method, path, params=nil, body=nil)
     error = e.message + "\n"
     error += "Problem with secure #{method} to: #{path}\n"
     error += "path: #{path}\n"
     error += "body: #{body}" if body
+    error += "params: #{params}" if params
     raise error
   end
 
@@ -178,6 +183,17 @@ class CWR
     resp
   end
 
+  def securely_get(path, params=nil, headers=nil)
+    headers = secure_headers(headers)
+    begin
+      resp = self.class.get(path, :headers => headers, :query => params)
+      check_response resp
+    rescue Exception => e
+      http_exception(e, :get, path, params)
+    end
+    resp
+  end
+
   def securely_post(path, body, headers=nil)
     require_access_token
     headers = secure_headers(headers)
@@ -187,7 +203,7 @@ class CWR
                              headers: headers)
       check_response resp
     rescue Exception => e
-      http_execption(e, :post, path, body)
+      http_execption(e, :post, path, nil, body)
     end
     resp
   end

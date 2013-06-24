@@ -71,7 +71,7 @@ describe CWR, "Normal usage" do
 
     after(:all) do
       @cwr.list_producers.map do |producer|
-        true
+        put producer
       end
     end
   end
