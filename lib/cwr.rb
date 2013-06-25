@@ -90,7 +90,6 @@ class CWR
     @PRODUCER_PATH = producer_path || "/producers"
     @CONSUMER_PATH = consumer_path || "/consumers"
     self.class.base_uri captian_webhooks_base_uri
-    @consumer_stub = Consumer.new(self, @producer_stub, "stub", "stub path")
     @webhook_stub = Webhook.new(1)
   end
 
