@@ -9,10 +9,12 @@ class Producer
 
   def initialize(cwr,
                  name,
-                 path=nil)
+                 path=nil,
+                 owner_id=nil)
     @cwr = cwr
     @name = name
     @path = path
+    @owner_id = owner_id
   end
   
   def destroy
@@ -93,12 +95,27 @@ class CWR
     resp
   end
 
-  def list_producers
+  def list_producers(&block)
+    block_given = !!block
     params = { email: @email }
     resp = securely_get(@PRODUCER_PATH,
                         params)
     producers = resp['producers']
-    return producers
+    collector = [] unless block_given
+    producers.map do |p|
+      producer = p['producers']
+      name = producer['name']
+      id = producer['id']
+      owner_id = producer['owner_id']
+      path = "#{@PRODUCER_PATH}/#{id}"
+      producer = Producer.new(self, name, path, owner_id)
+      if block_given
+        yield producer
+      else
+        collector << producer
+      end
+    end
+    return collector
   end
 
   def create_consumer(producer, name)
@@ -203,7 +220,7 @@ class CWR
                              headers: headers)
       check_response resp
     rescue Exception => e
-      http_execption(e, :post, path, nil, body)
+      http_exception(e, :post, path, nil, body)
     end
     resp
   end

@@ -38,7 +38,6 @@ describe CWR, "Normal usage" do
   describe "producers" do
     subject { @producer }
     it { should be_a Producer }
-    specify { @producer.destroy.should be_a DestroyedProducer }
     specify { @cwr.list_producers.first.should be_a Producer }
   end
 
@@ -68,11 +67,12 @@ describe CWR, "Normal usage" do
     subject { @webhook }
     it { should be_a Webhook }
     specify { @webhook.hooked?.should be true }
+    specify { @producer.destroy.should be_a DestroyedProducer }
 
-    after(:all) do
-      @cwr.list_producers.map do |producer|
-        put producer
-      end
+  end
+  after(:all) do
+    @cwr.list_producers do |producer|
+      producer.destroy
     end
   end
 end
