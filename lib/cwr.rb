@@ -18,7 +18,7 @@ class Producer
   end
   
   def destroy
-    @cwr.delete_producer(self)
+    @cwr.destroy_producer(self)
     return DestroyedProducer.new(path)
   end
 
@@ -37,15 +37,18 @@ class Producer
 end
 
 class Consumer
+  attr_reader :path
+
   def initialize(cwr, producer, name, consumer_path=nil)
     @cwr = cwr
     @producer = producer
     @name = name
-    @consumer_path = nil
+    @path = consumer_path
   end
 
   def destroy
-    return DestroyedConsumer.new
+    @cwr.destroy_consumer(self)
+    return DestroyedConsumer.new(path)
   end
 
   def id
@@ -70,6 +73,9 @@ class DestroyedProducer
 end
 
 class DestroyedConsumer
+  def initialize(former_path)
+    @former_path = former_path
+  end
 end
 
 class CWR
@@ -84,8 +90,7 @@ class CWR
     @PRODUCER_PATH = producer_path || "/producers"
     @CONSUMER_PATH = consumer_path || "/consumers"
     self.class.base_uri captian_webhooks_base_uri
-    @producer_stub = Producer.new(self, "stub")
-    @consumer_stub = Consumer.new(self, @producer_stub, "stub")
+    @consumer_stub = Consumer.new(self, @producer_stub, "stub", "stub path")
     @webhook_stub = Webhook.new(1)
   end
 
@@ -111,9 +116,12 @@ class CWR
     return Consumer.new( self, producer, name, consumer_path )
   end
 
-  def delete_producer(producer)
+  def destroy_consumer(consumer)
+    resp = securely_delete(consumer.path)
+  end
+
+  def destroy_producer(producer)
     resp = securely_delete(producer.path)
-    resp
   end
 
   def list_producers(&block)
