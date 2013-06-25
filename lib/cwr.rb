@@ -90,7 +90,6 @@ class CWR
     @PRODUCER_PATH = producer_path || "/producers"
     @CONSUMER_PATH = consumer_path || "/consumers"
     self.class.base_uri captian_webhooks_base_uri
-    @webhook_stub = Webhook.new(1)
   end
 
   def username=(other)
