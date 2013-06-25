@@ -169,7 +169,12 @@ class CWR
     return collector
   end
 
-  def create_webhook(producer, consumers, data=nil)
+  def create_webhook
+    
+  end
+
+  def create_mass_webhook(producer, consumers, data=nil)
+    raise "NOT IMPLEMENTED"
     consumers = [consumers] if consumers.is_a? Consumer
     return @webhook_stub
   end
