@@ -29,17 +29,27 @@ class Producer
   def create_webhook_for(consumers, webhook_post_uri, data = nil)
     @cwr.create_webhook(self, consumers, data)
   end
+
+  def id
+    @path ? @path.split("/")[-1] : nil
+  end
+
 end
 
 class Consumer
-  def initialize(cwr, producer, name)
+  def initialize(cwr, producer, name, consumer_path=nil)
     @cwr = cwr
     @producer = producer
     @name = name
+    @consumer_path = nil
   end
 
   def destroy
     return DestroyedConsumer.new
+  end
+
+  def id
+    @path ? @path.split("/")[-1] : nil
   end
 end
 
@@ -69,8 +79,10 @@ class CWR
   alias_method :username, :email
 
   def initialize(captian_webhooks_base_uri='http://0.0.0.0:3000',
-                 producer_path=nil)
+                 producer_path=nil,
+                 consumer_path=nil)
     @PRODUCER_PATH = producer_path || "/producers"
+    @CONSUMER_PATH = consumer_path || "/consumers"
     self.class.base_uri captian_webhooks_base_uri
     @producer_stub = Producer.new(self, "stub")
     @consumer_stub = Consumer.new(self, @producer_stub, "stub")
@@ -88,6 +100,15 @@ class CWR
     location = resp.headers['location']
     producer_path = location.split(self.class.base_uri)[-1]
     return Producer.new( self, name, producer_path )
+  end
+
+  def create_consumer(producer, name)
+    consumer = {"name" => name, "producer_id" => producer.id }
+    body = { "consumer" => consumer }
+    resp = securely_post( @CONSUMER_PATH, body )
+    location = resp.headers['location']
+    consumer_path = location.split(self.class.base_uri)[-1]
+    return Consumer.new( self, producer, name, consumer_path )
   end
 
   def delete_producer(producer)
@@ -116,10 +137,6 @@ class CWR
       end
     end
     return collector
-  end
-
-  def create_consumer(producer, name)
-    return Consumer.new( self, producer, name )
   end
 
   def list_consumers
