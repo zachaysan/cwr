@@ -124,6 +124,30 @@ class CWR
     resp = securely_delete(producer.path)
   end
 
+  def list_consumers(producer, &block)
+    block_given = !!block
+    params = { producer_id: producer.id }
+    resp = securely_get(@CONSUMER_PATH,
+                        params)
+    consumers = resp['consumers']
+    collector = [] unless block_given
+    consumers.map do |p|
+      consumer = p['consumers']
+      name = consumer['name']
+      id = consumer['id']
+      path = "#{@CONSUMER_PATH}/#{id}"
+      
+      consumer = Consumer.new( self, producer, name, path )
+
+      if block_given
+        yield consumer
+      else
+        collector << consumer
+      end
+    end
+    return collector
+  end
+
   def list_producers(&block)
     block_given = !!block
     params = { email: @email }
@@ -145,10 +169,6 @@ class CWR
       end
     end
     return collector
-  end
-
-  def list_consumers
-    return [@consumer_stub]
   end
 
   def create_webhook(producer, consumers, data=nil)

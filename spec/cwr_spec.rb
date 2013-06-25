@@ -49,8 +49,8 @@ describe CWR, "Normal usage" do
     end
     subject { @consumer }
     it { should be_a Consumer }
+    specify { @cwr.list_consumers(@producer).first.should be_a Consumer }
     specify { @consumer.destroy.should be_a DestroyedConsumer }
-    specify { @cwr.list_consumers.first.should be_a Consumer }
   end
 
   describe "webhooks" do
