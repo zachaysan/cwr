@@ -59,7 +59,7 @@ describe CWR, "Normal usage" do
       @consumer = @producer.create_consumer(consumer_name)
       @data = { "strike" => "at midnight" }
       # https is both mandatory and implied
-      @webhook_post_uri = "frank.from.accounts.example.com/strike"
+      @webhook_post_uri = "http://0.0.0.0:3000/echos"
       @webhook = @producer.create_webhook_for(@consumer,
                                               @webhook_post_uri,
                                               @data)

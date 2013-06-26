@@ -127,6 +127,7 @@ class CWR
   end
 
   def create_webhook(consumer, post_uri, data=nil)
+    data = data.to_json unless data.is_a? String
     webhook = { post_uri: post_uri, data: data, consumer_id: consumer.id }
     body = { webhook: webhook }
     resp = securely_post( @WEBHOOK_PATH, body )
