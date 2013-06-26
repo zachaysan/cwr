@@ -1,9 +1,6 @@
 require 'json'
 require 'httparty'
 
-class DestroyedProducer
-end
-
 class Producer
   attr_reader :path
 
@@ -26,8 +23,12 @@ class Producer
     @cwr.create_consumer self, name
   end
   
-  def create_webhook_for(consumers, webhook_post_uri, data = nil)
-    @cwr.create_webhook(self, consumers, data)
+  def create_webhook_for(consumer, webhook_post_uri, data = nil)
+    @cwr.create_webhook(consumer, webhook_post_uri, data)
+  end
+
+  def create_mass_webhooks
+    raise "Not implemented"
   end
 
   def id
@@ -57,25 +58,34 @@ class Consumer
 end
 
 class Webhook
-  def initialize(webhook_id, error=nil)
-    @error = error
+  def initialize(path)
+    @path = path
+    @hooked = true
   end
   
   def hooked?
-    !@error
+    raise "wtf unhookedwebhook" unless @hooked
+    @hooked
+  end
+
+  def destroy
+    @hooked = false
   end
 end
 
-class DestroyedProducer
+class Destroyed
   def initialize(former_path)
     @former_path = former_path
   end
 end
 
-class DestroyedConsumer
-  def initialize(former_path)
-    @former_path = former_path
-  end
+class DestroyedProducer < Destroyed
+end
+
+class DestroyedConsumer < Destroyed
+end
+
+class DestroyedWebhook < Destroyed
 end
 
 class CWR
@@ -86,9 +96,11 @@ class CWR
 
   def initialize(captian_webhooks_base_uri='http://0.0.0.0:3000',
                  producer_path=nil,
-                 consumer_path=nil)
+                 consumer_path=nil,
+                 webhook_path=nil)
     @PRODUCER_PATH = producer_path || "/producers"
     @CONSUMER_PATH = consumer_path || "/consumers"
+    @WEBHOOK_PATH = webhook_path || "/webhooks"
     self.class.base_uri captian_webhooks_base_uri
   end
 
@@ -97,7 +109,7 @@ class CWR
   end
 
   def create_producer(name)
-    body = { "producer" => {"name" => name }}
+    body = { producer: { name: name } }
     resp = securely_post( @PRODUCER_PATH, body )
     
     location = resp.headers['location']
@@ -106,12 +118,21 @@ class CWR
   end
 
   def create_consumer(producer, name)
-    consumer = {"name" => name, "producer_id" => producer.id }
-    body = { "consumer" => consumer }
+    consumer = { name: name, producer_id: producer.id }
+    body = { consumer: consumer }
     resp = securely_post( @CONSUMER_PATH, body )
     location = resp.headers['location']
     consumer_path = location.split(self.class.base_uri)[-1]
     return Consumer.new( self, producer, name, consumer_path )
+  end
+
+  def create_webhook(consumer, post_uri, data=nil)
+    webhook = { post_uri: post_uri, data: data, consumer_id: consumer.id }
+    body = { webhook: webhook }
+    resp = securely_post( @WEBHOOK_PATH, body )
+    location = resp.headers['location']
+    webhook_path = location.split(self.class.base_uri)[-1]
+    Webhook.new(webhook_path)
   end
 
   def destroy_consumer(consumer)
@@ -169,14 +190,8 @@ class CWR
     return collector
   end
 
-  def create_webhook
-    
-  end
-
   def create_mass_webhook(producer, consumers, data=nil)
     raise "NOT IMPLEMENTED"
-    consumers = [consumers] if consumers.is_a? Consumer
-    return @webhook_stub
   end
 
   def list_webhooks
