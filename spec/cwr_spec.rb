@@ -68,7 +68,14 @@ describe CWR, "Normal usage" do
     it { should be_a Webhook }
     specify { @webhook.hooked?.should be true }
     specify { @producer.destroy.should be_a DestroyedProducer }
-
+    it "should update the webhook" do
+      back_then = Time.now.to_i
+      while Time.now.to_i < back_then + 2 and not @webhook.complete?
+        sleep 0.01
+        @webhook.update
+      end
+      @webhook.complete?.should be true
+    end
   end
   after(:all) do
     @cwr.list_producers do |producer|

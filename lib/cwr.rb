@@ -58,9 +58,11 @@ class Consumer
 end
 
 class Webhook
-  def initialize(path)
+  def initialize(cwr, path, complete=false)
+    @cwr = cwr
     @path = path
     @hooked = true
+    @complete = complete
   end
   
   def hooked?
@@ -68,8 +70,17 @@ class Webhook
     @hooked
   end
 
+  def complete?
+    @complete
+  end
+
   def destroy
     @hooked = false
+  end
+
+  def update
+    resp = @cwr.update_webhook(@path)
+    @complete = !resp["attempt"]
   end
 end
 
@@ -133,7 +144,11 @@ class CWR
     resp = securely_post( @WEBHOOK_PATH, body )
     location = resp.headers['location']
     webhook_path = location.split(self.class.base_uri)[-1]
-    Webhook.new(webhook_path)
+    Webhook.new(self, webhook_path)
+  end
+
+  def update_webhook(webhook_path)
+    securely_get( webhook_path )
   end
 
   def destroy_consumer(consumer)
