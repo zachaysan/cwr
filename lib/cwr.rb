@@ -263,10 +263,12 @@ class CWR
     error += "path: #{path}\n"
     error += "body: #{body}" if body
     error += "params: #{params}" if params
-    raise error
+    print error
+    raise e
   end
 
   def securely_delete(path, headers=nil)
+    require_access_token
     headers = secure_headers(headers)
     begin
       resp = self.class.delete(path,
@@ -279,7 +281,9 @@ class CWR
   end
 
   def securely_get(path, params=nil, headers=nil)
+    require_access_token
     headers = secure_headers(headers)
+
     begin
       resp = self.class.get(path, :headers => headers, :query => params)
       check_response resp

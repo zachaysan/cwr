@@ -14,4 +14,13 @@ def create_a_producer
   @cwr.create_producer(producer_name)
 end
 
-create_a_producer
+def create_a_consumer
+  consumer_name = "Francy Pants"
+  create_a_producer unless @cwr.list_producers.length > 0
+  puts @cwr.list_producers.first
+    #.create_consumer(consumer_name)
+end
+
+#create_a_producer
+
+create_a_consumer
