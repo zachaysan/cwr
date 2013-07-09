@@ -190,8 +190,7 @@ class CWR
                         params)
     producers = resp['producers']
     collector = [] unless block_given
-    producers.map do |p|
-      producer = p['producers']
+    producers.map do |producer|
       name = producer['name']
       id = producer['id']
       owner_id = producer['owner_id']
