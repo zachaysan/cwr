@@ -16,10 +16,31 @@ end
 
 def create_a_consumer
   consumer_name = "Francy Pants"
-  create_a_producer unless @cwr.list_producers.length > 0
+  create_a_producer unless producer?
   @cwr.list_producers.first.create_consumer(consumer_name)
 end
 
-#create_a_producer
+def producer?
+  @cwr.list_producers.length > 0
+end
 
-create_a_consumer
+def consumer?
+  consumers = @cwr.list_producers.map(&:list_consumers).flatten
+  consumers.length > 0
+end
+
+def create_a_failed_webhook
+  # Note: this will fail since they are not set up to recieve webhooks
+  post_uri = "http://www.revleft.com/"
+
+  data = {"urgent message for our comrade!" => "We're using captain webhooks to send this to you!" }
+  create_a_consumer unless consumer?
+  
+  consumer = @cwr.list_producers.map(&:list_consumers).flatten.first
+  consumer.create_webhook(post_uri, data)
+end
+
+#create_a_producer
+#create_a_consumer
+create_a_failed_webhook
+
