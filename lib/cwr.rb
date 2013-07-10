@@ -23,7 +23,7 @@ class Producer
     @cwr.create_consumer self, name
   end
   
-  def create_webhook_for(consumer, webhook_post_uri, data = nil)
+  def create_webhook(consumer, webhook_post_uri, data = nil)
     @cwr.create_webhook(consumer, webhook_post_uri, data)
   end
 
@@ -35,6 +35,9 @@ class Producer
     @path ? @path.split("/")[-1] : nil
   end
 
+  def list_consumers
+    @cwr.list_consumers(self)
+  end
 end
 
 class Consumer
@@ -54,6 +57,10 @@ class Consumer
 
   def id
     @path ? @path.split("/")[-1] : nil
+  end
+
+  def create_webhook(post_uri, data)
+    @producer.create_webhook(self, post_uri, data)
   end
 end
 
