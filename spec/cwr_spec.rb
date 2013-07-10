@@ -71,12 +71,13 @@ describe CWR, "Normal usage" do
     it "should update the webhook" do
       back_then = Time.now.to_i
       while Time.now.to_i < back_then + 2 and not @webhook.complete?
-        sleep 0.01
+        sleep 0.1
         @webhook.update
       end
       @webhook.complete?.should be true
     end
   end
+
   after(:all) do
     @cwr.list_producers do |producer|
       producer.destroy
