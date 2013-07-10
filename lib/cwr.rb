@@ -23,8 +23,8 @@ class Producer
     @cwr.create_consumer self, name
   end
   
-  def create_webhook(consumer, webhook_post_uri, data = nil)
-    @cwr.create_webhook(consumer, webhook_post_uri, data)
+  def create_webhook(consumer, webhook_post_uri, post_data = nil)
+    @cwr.create_webhook(consumer, webhook_post_uri, post_data)
   end
 
   def create_mass_webhooks
@@ -59,8 +59,8 @@ class Consumer
     @path ? @path.split("/")[-1] : nil
   end
 
-  def create_webhook(post_uri, data)
-    @producer.create_webhook(self, post_uri, data)
+  def create_webhook(post_uri, post_data)
+    @producer.create_webhook(self, post_uri, post_data)
   end
 end
 
@@ -144,9 +144,9 @@ class CWR
     return Consumer.new( self, producer, name, consumer_path )
   end
 
-  def create_webhook(consumer, post_uri, data=nil)
-    data = data.to_json unless data.is_a? String
-    webhook = { post_uri: post_uri, data: data, consumer_id: consumer.id }
+  def create_webhook(consumer, post_uri, post_data=nil)
+    post_data = post_data.to_json unless post_data.is_a? String
+    webhook = { post_uri: post_uri, post_data: post_data, consumer_id: consumer.id }
     body = { webhook: webhook }
     resp = securely_post( @WEBHOOK_PATH, body )
     location = resp.headers['location']
@@ -212,7 +212,7 @@ class CWR
     return collector
   end
 
-  def create_mass_webhook(producer, consumers, data=nil)
+  def create_mass_webhook(producer, consumers, post_data=nil)
     raise "NOT IMPLEMENTED"
   end
 
