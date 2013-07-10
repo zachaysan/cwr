@@ -60,9 +60,9 @@ describe CWR, "Normal usage" do
       @data = { "strike" => "at midnight" }
       # https is both mandatory and implied
       @webhook_post_uri = "http://0.0.0.0:3000/echos"
-      @webhook = @producer.create_webhook_for(@consumer,
-                                              @webhook_post_uri,
-                                              @data)
+      @webhook = @producer.create_webhook(@consumer,
+                                          @webhook_post_uri,
+                                          @data)
     end
     subject { @webhook }
     it { should be_a Webhook }
