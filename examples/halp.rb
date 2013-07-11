@@ -40,7 +40,20 @@ def create_a_failed_webhook
   consumer.create_webhook(post_uri, data)
 end
 
+def create_a_webhook
+  # Note: this will only work if you have cw running locally, otherwise you will
+  #       need to put in your own uri that you are sure will work
+
+  post_uri = "http://0.0.0.0:3000/echos"
+
+  data = {"Yeaaaar" => "Avast ye webhooks, can ye hear me?" }
+  create_a_consumer unless consumer?
+  
+  consumer = @cwr.list_producers.map(&:list_consumers).flatten.first
+  consumer.create_webhook(post_uri, data)
+end
+
 #create_a_producer
 #create_a_consumer
-create_a_failed_webhook
-
+#create_a_failed_webhook
+create_a_webhook
