@@ -57,18 +57,35 @@ describe CWR, "Normal usage" do
     before(:all) do
       consumer_name = "frank from accounts"
       @consumer = @producer.create_consumer(consumer_name)
-      @data = { "strike" => "at midnight" }
+      @post_data = { "strike" => "at midnight" }
       # https is both mandatory and implied
       @webhook_post_uri = "http://0.0.0.0:3000/echos"
-      @webhook = @producer.create_webhook(@consumer,
-                                          @webhook_post_uri,
-                                          @data)
     end
-    subject { @webhook }
-    it { should be_a Webhook }
-    specify { @webhook.hooked?.should be true }
-    specify { @producer.destroy.should be_a DestroyedProducer }
-    it "should update the webhook" do
+    describe "headerless webhooks" do
+      before(:all) do    
+        @webhook = @producer.create_webhook(@consumer,
+                                            @webhook_post_uri,
+                                            @post_data)
+      end
+      subject { @webhook }
+      it { should be_a Webhook }
+      specify { @webhook.hooked?.should be true }
+      specify { @producer.destroy.should be_a DestroyedProducer }
+      it "should update the webhook" do
+        back_then = Time.now.to_i
+        while Time.now.to_i < back_then + 2 and not @webhook.complete?
+          sleep 0.1
+          @webhook.update
+        end
+        @webhook.complete?.should be true
+      end
+    
+    end
+    it "should allow custom headers to be set" do
+      @post_data = {"message" => "Crank"}
+      @custom_headers = {"SecretKnock" => "KnockKNOCK"}
+      # We can also create webhooks from the consumer directly
+      @webhook = @consumer.create_webhook(@webhook_post_uri, @post_data, @custom_headers)
       back_then = Time.now.to_i
       while Time.now.to_i < back_then + 2 and not @webhook.complete?
         sleep 0.1
