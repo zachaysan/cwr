@@ -145,13 +145,15 @@ class CWR
   end
 
   def create_webhook(consumer, post_uri, post_data=nil, post_headers=nil)
-    post_data = post_data.to_json unless post_data.is_a? String
-    post_headers = post_headers.to_json unless post_headers.is_a? String
+    post_data = post_data.to_json unless post_data.is_a? String or post_data.nil?
+    post_headers = post_headers.to_json unless post_headers.is_a? String or post_headers.nil?
 
     webhook = { post_uri: post_uri,
       post_data: post_data,
-      post_headers: post_headers,
       consumer_id: consumer.id }
+
+    webhook[:post_headers] = post_headers if post_headers
+
     body = { webhook: webhook }
     resp = securely_post( @WEBHOOK_PATH, body )
     location = resp.headers['location']
