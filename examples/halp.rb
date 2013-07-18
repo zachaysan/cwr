@@ -2,7 +2,6 @@ require File.expand_path(File.join(File.dirname(__FILE__),
                                    '..',
                                    'lib',
                                    'cwr.rb'))
-
 EMAIL = "z@z.com"
 PASSWORD = "foo"
 @cwr = CWR.new
@@ -56,4 +55,6 @@ end
 #create_a_producer
 #create_a_consumer
 #create_a_failed_webhook
-create_a_webhook
+(1..10).to_a.each do
+  create_a_webhook
+end
