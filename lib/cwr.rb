@@ -112,7 +112,7 @@ class CWR
   attr_accessor :access_token, :email, :password, :producer
   alias_method :username, :email
 
-  def initialize(captian_webhooks_base_uri='http://0.0.0.0:3000',
+  def initialize(captian_webhooks_base_uri='http://captainwebhooks.com',
                  producer_path=nil,
                  consumer_path=nil,
                  webhook_path=nil)
