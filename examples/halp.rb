@@ -2,11 +2,16 @@ require File.expand_path(File.join(File.dirname(__FILE__),
                                    '..',
                                    'lib',
                                    'cwr.rb'))
+
+ROOT_URI = "http://0.0.0.0:3000"
+
 EMAIL = "z@z.com"
 PASSWORD = "foo"
-@cwr = CWR.new
+@cwr = CWR.new(ROOT_URI)
 @cwr.email = EMAIL
 @cwr.password = PASSWORD
+
+
 
 def create_a_producer
   producer_name = "Project Echelon"
@@ -40,10 +45,11 @@ def create_a_failed_webhook
 end
 
 def create_a_webhook
-  # Note: this will only work if you have cw running locally, otherwise you will
-  #       need to put in your own uri that you are sure will work
+  # This might not work, since /echos might not be open
+  # to the public
 
-  post_uri = "http://captainwebhooks.com/echos"
+  post_uri = "#{ROOT_URI}/echos"
+
 
   data = {"Yeaaaar" => "Avast ye webhooks, can ye hear me?" }
   create_a_consumer unless consumer?
